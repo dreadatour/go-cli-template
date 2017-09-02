@@ -9,7 +9,7 @@ import (
 )
 
 func usage() {
-	fmt.Printf("Usage: %s <--key1=value1> <--key2=value2> <--flag1> ... template.file\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s <--key1=value1> <--key2=value2> <--flag1> ... template.file\n", os.Args[0])
 	os.Exit(1)
 }
 
@@ -34,26 +34,26 @@ func main() {
 		} else if templateFile == "" {
 			templateFile = i
 		} else {
-			fmt.Println("Error: more than one template file defined")
+			fmt.Fprintln(os.Stderr, "Error: more than one template file defined")
 			usage()
 		}
 	}
 	if templateFile == "" {
-		fmt.Println("Error: no template file defined")
+		fmt.Fprintln(os.Stderr, "Error: no template file defined")
 		usage()
 	}
 
 	// check template file
 	if _, err := os.Stat(templateFile); err != nil {
-		fmt.Printf("Error: can't find template file '%s'\n", templateFile)
+		fmt.Fprintf(os.Stderr, "Error: can't find template file '%s'\n", templateFile)
 		os.Exit(1)
 	}
 
 	// parse template file
 	t, err := template.ParseFiles(templateFile)
 	if err != nil {
-		fmt.Println("Error: can't parse template file")
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, "Error: can't parse template file")
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 	t.Option("missingkey=error")
@@ -62,8 +62,8 @@ func main() {
 	var output bytes.Buffer
 	err = t.Execute(&output, data)
 	if err != nil {
-		fmt.Println("Error: can't render template file")
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, "Error: can't render template file")
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
