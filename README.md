@@ -30,3 +30,9 @@ $ export service=foo
 $ go-cli-template --service=bar app.yaml.tmpl
 service: bar
 ```
+
+Template from STDIN:
+```
+$ echo 'service: {{.service}}' | go-cli-template --service=foo -
+service: foo
+```

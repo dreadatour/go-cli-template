@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -24,7 +25,7 @@ func main() {
 	// parse command line arguments
 	var templateFile string
 	for _, i := range os.Args[1:] {
-		if i[0:2] == "--" {
+		if len(i) >= 2 && i[0:2] == "--" {
 			s := strings.Split(i[2:], "=")
 			if len(s) > 1 {
 				data[s[0]] = s[1]
@@ -38,19 +39,36 @@ func main() {
 			usage()
 		}
 	}
+
+	var templateContent string
+
 	if templateFile == "" {
 		fmt.Fprintln(os.Stderr, "Error: no template file defined")
 		usage()
-	}
-
-	// check template file
-	if _, err := os.Stat(templateFile); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: can't find template file '%s'\n", templateFile)
-		os.Exit(1)
+	} else if templateFile == "-" {
+		data, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error: can't read from STDIN")
+			os.Exit(1)
+		}
+		templateContent = string(data)
+	} else {
+		// check template file
+		if _, err := os.Stat(templateFile); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: can't find template file '%s'\n", templateFile)
+			os.Exit(1)
+		}
+		// read from template
+		data, err := ioutil.ReadFile(templateFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: can't read from template file '%s'\n", templateFile)
+			os.Exit(1)
+		}
+		templateContent = string(data)
 	}
 
 	// parse template file
-	t, err := template.ParseFiles(templateFile)
+	t, err := template.New("template").Parse(templateContent)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error: can't parse template file")
 		fmt.Fprintln(os.Stderr, err.Error())
